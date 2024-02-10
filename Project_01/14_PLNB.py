@@ -35,11 +35,11 @@ def preprocess_data(header, data):
                 continue
             else:
                 try:
-                    numeric_row.append(int(row[i]))
-                except ValueError:
                     numeric_row.append(float(row[i]))
+                except ValueError:
+                    numeric_row.append(int(row[i]))
         
-        numeric_row.append(int(row[ind]))
+        numeric_row.append(float(row[ind]))
         
         numeric_data.append(numeric_row)
     return numeric_data
