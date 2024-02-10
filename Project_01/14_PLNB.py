@@ -15,6 +15,7 @@ from sklearn.naive_bayes import GaussianNB # sklearn Naive Bayes
 import operator
 from math import log
 from collections import Counter
+from tabulate import tabulate
 
 # Load the dataset
 def load_dataset(file_path):
@@ -107,7 +108,7 @@ def process_classification_report(report_dict):
         if label not in ['macro avg', 'weighted avg']:
             # Check if the label is 'accuracy' and append its value
             if label == 'accuracy':
-                float_array.append(float(metrics))
+                float_array.insert(0, float(metrics))
             else:
                 # Iterate through the metrics for each label
                 for metric, value in metrics.items():
@@ -166,7 +167,7 @@ report_sklearn = classification_report(y_test, y_pred_sklearn)
 report_sklearn_dict = classification_report(y_test, y_pred_sklearn, output_dict=True)
 processed_sklearn_report = process_classification_report(report_sklearn_dict)
 
-print("\nTraing and Testing Data Split :", "{:.2f} %".format(100-test_size), "  and  ", "{:.2f} %".format(test_size))
+print("\nTraing and Testing Data Split :", "{:.4f} %".format(100-test_size), "  and  ", "{:.4f} %".format(test_size))
 
 # Print results - Comparison between ours and scikit-learn's Gaussian Naive Bayes
 print("\nClassification Report (our):")
@@ -175,7 +176,29 @@ print(report_custom)
 print("\nClassification Report (sklearn):")
 print(report_sklearn)
 
+# RESULTS - Comparison between ours and scikit-learn's Gaussian Naive Bayes
+print("\nData Split => [Training Data] and [Test Data] :", "{:.4f} %".format(100-test_size), "  and  ", "{:.4f} %".format(test_size))
+
 # Check if all values under each label match within the specified tolerance
 print("\nComparison of Results : [Match] => (True \ False) ? \n")
-print("[Res] Custom <v/s> scikit-learn  [Overall]  : ", compare(processed_custom_report, processed_sklearn_report, roundup-1), " (upto", roundup, "decimal places)")
+#print("[Res] Custom <v/s> scikit-learn  [Overall]  : ", compare(processed_custom_report, processed_sklearn_report, roundup-1), " (upto", roundup, "decimal places)")
 print("[Res] Custom <v/s> scikit-learn [Accuracy]  : ", abs(acc_custom - acc_sklearn) <= 0.01, " (upto 2 decimal places)")
+
+print()
+tags = ["Accuracy", "Precision (0)", "Recall (0)", "F1-score (0)", "Precision (1)", "Recall (1)", "F1-score (1)"]
+
+# Combine the values for comparison
+combined_values = []
+for v0, v1, v2 in zip(tags, processed_custom_report, processed_sklearn_report):
+    combined_values.append([v0, round(v1, 8), round(v2, 8)])
+
+# Headers for the tabulated data
+headers = ["Comparator", "our-CustomGNB()", "sklearn-GaussianNB()"]
+
+# Insert a horizontal line after "F1-score (0)" && "Accuracy"
+f1_score_0_index = tags.index("F1-score (0)")
+combined_values.insert(f1_score_0_index + 1, ["-" * 15, "-" * 15, "-" * 20])
+combined_values.insert(1, ["-" * 15, "-" * 15, "-" * 20])
+
+# Display the comparison in tabular format
+print(tabulate(combined_values, headers=headers, tablefmt='pretty'))
