@@ -7,6 +7,8 @@ import time
 # Set random seed for reproducibility
 np.random.seed(42)
 
+log_file = open("report_logs.txt", "w")
+
 # Helper function to convert string numbers to integers
 def farm_number(data):
     data = data.strip('"')
@@ -50,22 +52,29 @@ def k_means_clustering(data, k, tmp=0, max_iterations=20):
     # Save clustering information into a file
     
     filename = "kmeanstmp.txt" if tmp else "kmeans.txt"
+    
+    clusters = []
+    for i in range(k):
+        cluster_indices = np.where(labels == i)[0]
+        cluster_indices = cluster_indices.tolist()
+        
+        cluster_indices.sort()
+        clusters.append(cluster_indices)
+        
+    clusters.sort(key=lambda x: x[0])
+        
     with open(filename, "w") as file:
-        for i in range(k):
-            cluster_indices = np.where(labels == i)[0]
-            file.write(",".join(map(str, cluster_indices)))
+        for cluster in clusters:
+            file.write(",".join(map(str, cluster)))
             file.write("\n")
             
-        file.close()
+    file.close()
 
 # Step 3: Silhouette Coefficient Calculation
 def silhouette_coefficient(data, labels):
     n = len(data)
     
     clusters = np.unique(list(labels.values()))
-    
-    # Print clusters
-    # print("Clusters ===>\n", clusters) 
     
     if len(clusters) == 1:
         return np.nan
@@ -106,6 +115,7 @@ def find_optimal_k(data, silhouette_score_k3):
         silhouette_score = silhouette_coefficient(data, labels)
         
         print("\t", k, "\t", silhouette_score)
+        log_file.write("\t" + str(k) + "\t" + str(silhouette_score) + "\n")
         
         if silhouette_score > best_silhouette_score:
             best_silhouette_score = silhouette_score
@@ -181,6 +191,7 @@ def main():
     end_time = time.time()
     
     print("\nRead the dataset in (", end_time - start_time, ") seconds")
+    log_file.write("Read the dataset in (" + str(end_time - start_time) + ") seconds\n")
     
     # Step 2: K-means Clustering
     k = 3 # Initial value of K
@@ -190,6 +201,7 @@ def main():
     end_time = time.time()
     
     print("\nK-means Clustering in (", end_time - start_time, ") seconds")
+    log_file.write("\nK-means Clustering in (" + str(end_time - start_time) + ") seconds\n")
     
     # Step 3: Silhouette Coefficient Calculation
     labels = {}  # Initialize an empty dictionary to store labels
@@ -198,16 +210,16 @@ def main():
         for count, line in enumerate(file):
             for ent in map(int, line.strip().split(',')):
                 labels[ent] = count
-        
-    # Print labels
-    # print("Labels ===>\n", labels)
     
     silhouette_score = silhouette_coefficient(data, labels)
 
     print("\nSilhouette Coefficient Values :\n")
     print("\t k\t silhouette_score")
+    log_file.write("\nSilhouette Coefficient Values :\n")
+    log_file.write("\t k\t silhouette_score\n")
     
     print("\t", k, "\t", silhouette_score)
+    log_file.write("\t" + str(k) + "\t" + str(silhouette_score) + "\n")
     
     # Step 4: Find Optimal K
     start_time = time.time()
@@ -216,6 +228,8 @@ def main():
     
     print("\nFind Optimal K in (", end_time - start_time, ") seconds")
     print("\nOptimal K:", optimal_k)
+    log_file.write("\nFind Optimal K in (" + str(end_time - start_time) + ") seconds\n")
+    log_file.write("\nOptimal K: " + str(optimal_k) + "\n")
     
     # Step 5: K-means Clustering with optimal K
     start_time = time.time()
@@ -223,6 +237,7 @@ def main():
     end_time = time.time()
     
     print("\nK-means Clustering with optimal K in (", end_time - start_time, ") seconds")
+    log_file.write("\nK-means Clustering with optimal K in (" + str(end_time - start_time) + ") seconds\n")
     
     k_opt_means_clusters = []
     with open("kmeans.txt", "r") as file:
@@ -235,6 +250,19 @@ def main():
     end_time = time.time()
     
     print("\nHierarchical Clustering in (", end_time - start_time, ") seconds")
+    log_file.write("\nHierarchical Clustering in (" + str(end_time - start_time) + ") seconds\n")
+    
+    for cluster in hierarchical_clusters:
+        cluster.sort()
+        
+    hierarchical_clusters.sort(key=lambda x: x[0])
+        
+    with open("agglomerative.txt", "w") as file:
+        for cluster in hierarchical_clusters:
+            file.write(",".join(map(str, cluster)))
+            file.write("\n")
+    
+    file.close()
     
     # print("\nk_opt_means_clusters :", k_opt_means_clusters)
     # print("\nhierarchical_clusters :", hierarchical_clusters)
@@ -245,23 +273,31 @@ def main():
     end_time = time.time()
     
     print("\nJaccard Similarity in (", end_time - start_time, ") seconds")
+    log_file.write("\nJaccard Similarity in (" + str(end_time - start_time) + ") seconds\n")
     
     print("\nJaccard similarity values :\n")
     print("\t mapping\t jaccard_score")
+    log_file.write("\nJaccard similarity values :\n")
+    log_file.write("\t mapping\t jaccard_score\n")
     
     # Print Jaccard similarity scores for each mapping
     for i, score in enumerate(jaccard_jaccard_scores):
         print("\t", i, "\t\t", score)
+        log_file.write("\t" + str(i) + "\t\t" + str(score) + "\n")
         
     # Print the best Jaccard similarity score
     best_jaccard_score = max(jaccard_jaccard_scores)
+    best_jaccard_score_index = jaccard_jaccard_scores.index(best_jaccard_score)
     
-    print("\nBest Jaccard similarity score:", best_jaccard_score)
+    print("\nBest Jaccard similarity score:", best_jaccard_score, "for mapping", best_jaccard_score_index)
+    log_file.write("\nBest Jaccard similarity score: " + str(best_jaccard_score) + " for mapping " + str(best_jaccard_score_index) + "\n")
     
     # Delete the file named kmeanstmp.txt
     file_path = "kmeanstmp.txt"
     if os.path.exists(file_path):
         os.remove(file_path)
+        
+    log_file.close()
 
 # Entry point of the program
 if __name__ == "__main__":
