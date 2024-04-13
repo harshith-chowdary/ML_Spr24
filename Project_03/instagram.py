@@ -1,3 +1,7 @@
+# Roll Number   : 21CS10042
+# Project Code  : IUHC-AS
+# Project Title : Instagram User Dynamics using Single Linkage Agglomerative (Bottom-Up) Clustering Technique
+
 import csv
 import numpy as np
 import os
