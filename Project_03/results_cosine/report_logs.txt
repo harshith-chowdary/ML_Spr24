@@ -1,0 +1,28 @@
+Read the dataset in (0.0038945674896240234) seconds
+
+K-means Clustering in (0.28703975677490234) seconds
+
+Silhouette Coefficient Values :
+	 k	 silhouette_score
+	3	-0.024810228443884842
+	4	-0.030953226423288308
+	5	-0.05283134706061653
+	6	-0.12097468220944316
+
+Find Optimal K in (10.921749353408813) seconds
+
+Optimal K: 3
+
+K-means Clustering with optimal K in (0.1626434326171875) seconds
+
+Hierarchical Clustering in (122.55515909194946) seconds
+
+Jaccard Similarity in (0.00022864341735839844) seconds
+
+Jaccard similarity values :
+	 mapping	 jaccard_score
+	0		0.1990686845168801
+	1		0.2782608695652174
+	2		0.4599786552828175
+
+Best Jaccard similarity score: 0.4599786552828175 for mapping 2

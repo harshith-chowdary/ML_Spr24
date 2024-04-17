@@ -39,8 +39,55 @@ def read_dataset(file_path):
             data.append([posts, followers, followings, likes_10, likes_11, likes_12, self_presenting_posts, gender])
     return np.array(data)
 
-# Step 2: K-means Clustering
-def k_means_clustering(data, k, tmp=0, max_iterations=20):
+def cosine_similarity(a, b):
+    dot_product = np.dot(a, b)
+    norm_a = np.linalg.norm(a)
+    norm_b = np.linalg.norm(b)
+    similarity = dot_product / (norm_a * norm_b)
+    return similarity
+
+# # Step 2: K-means Clustering
+def cosine_k_means_clustering(data, k, tmp=0, max_iterations=20):
+    # Initialize centroids randomly
+    centroids = data[np.random.choice(data.shape[0], k, replace=False)]
+    # Assign each data point to the nearest centroid
+    for _ in range(max_iterations):
+        # Calculate cosine similarity between data points and centroids
+        distances = np.zeros((data.shape[0], k))
+        for i in range(k):
+            for j in range(data.shape[0]):
+                distances[j, i] = cosine_similarity(data[j], centroids[i])
+        # Assign labels based on the closest centroid
+        labels = np.argmax(distances, axis=1)
+        # Update centroids
+        new_centroids = np.array([data[labels == i].mean(axis=0) if np.sum(labels == i) > 0 else data[np.argmax(distances[:, i])].copy() for i in range(k)])
+        # Check for convergence
+        if np.allclose(centroids, new_centroids):
+            break
+        centroids = new_centroids
+    # Save clustering information into a file
+    
+    filename = "kmeanstmp.txt" if tmp else "kmeans.txt"
+    
+    clusters = []
+    for i in range(k):
+        cluster_indices = np.where(labels == i)[0]
+        cluster_indices = cluster_indices.tolist()
+        
+        cluster_indices.sort()
+        clusters.append(cluster_indices)
+        
+    clusters.sort(key=lambda x: x[0])
+        
+    with open(filename, "w") as file:
+        for cluster in clusters:
+            file.write(",".join(map(str, cluster)))
+            file.write("\n")
+            
+    file.close()
+
+# # Step 2: K-means Clustering
+def euclid_k_means_clustering(data, k, tmp=0, max_iterations=20):
     # Initialize centroids randomly
     centroids = data[np.random.choice(data.shape[0], k, replace=False)]
     # Assign each data point to the nearest centroid
@@ -183,6 +230,10 @@ def jaccard_similarity(k_opt_means_clusters, hierarchical_clusters):
         jaccard_scores.append(max_similarity)
         
     return jaccard_scores
+
+def k_means_clustering(data, k, tmp=0):
+    cosine_k_means_clustering(data, k, tmp)
+    # euclid_k_means_clustering(data, k, tmp)
 
 # Main function
 def main():
